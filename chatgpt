@@ -1,0 +1,70 @@
+
+from itertools import combinations
+
+transactions = [
+    ['Milk', 'Bread', 'Butter'],
+    ['Bread', 'Butter'],
+    ['Milk', 'Bread'],
+    ['Beer', 'Bread'],
+    ['Milk', 'Beer', 'Bread', 'Butter']
+]
+
+min_support = 2
+
+def get_frequent_itemsets(transactions, candidates, min_support):
+    item_count = {}
+
+    for itemset in candidates:
+        for trans in transactions:
+            if itemset.issubset(set(trans)):
+                item_count[itemset] = item_count.get(itemset, 0) + 1
+
+    freq_itemsets = {item: count for item, count in item_count.items() if count >= min_support}
+    return freq_itemsets
+
+def apriori(transactions, min_support):
+
+    items = set()
+    for t in transactions:
+        items.update(t)
+
+    C1 = [frozenset([i]) for i in items]
+
+    L = [] 
+    L1 = get_frequent_itemsets(transactions, C1, min_support)
+    L.append(L1)
+
+    k = 2
+    prev_L = L1
+
+    while prev_L:
+        prev_items = list(prev_L.keys())
+
+        Ck = []
+        for i in range(len(prev_items)):
+            for j in range(i + 1, len(prev_items)):
+                union_set = prev_items[i].union(prev_items[j])
+                if len(union_set) == k:
+                    Ck.append(union_set)
+
+        Ck = list(set(Ck)) 
+
+        Lk = get_frequent_itemsets(transactions, Ck, min_support)
+
+        if not Lk:
+            break
+
+        L.append(Lk)
+        prev_L = Lk
+        k += 1
+
+    return L
+
+frequent_itemsets = apriori(transactions, min_support)
+
+print("Frequent Itemsets using Apriori Algorithm:")
+print("-------------------------------------------")
+
+for level in frequent_itemsets:
+    for itemset, count in level.items():
+        print(f"{set(itemset)}  --> Support Count = {count}")
